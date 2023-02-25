@@ -1,18 +1,27 @@
-use std::convert::TryFrom;
-
-use num::{bigint::{BigUint, RandBigInt}, BigInt};
-
 fn main() {
-  let modulus = BigInt::from(124_u8);
-  let mut bigi = BigInt::from(-100_i8);
-  let uint = {
-    if bigi < BigInt::from(0_i8) {
-      bigi = (&bigi % &modulus) + &modulus;
+  let a = 347384_i64;
+  let b = 2938425_i64;
+
+  let c = modular_inverse(a, b);
+
+  assert!(a * c % b == 1);
+}
+
+
+fn modular_inverse(a: i64, b: i64) -> i64 {
+  let (mut s, mut old_s) = (0, 1);
+  let (mut g, mut old_g) = (b, a);
+  while g != 0 {
+      let q = old_g / g;
+      let (new_r, new_s) = (old_g - q * g, old_s - q * s);
+      old_g = g; // Not using destructuring to support low version
+      g = new_r; // AtCoder is using 1.42.0
+      old_s = s;
+      s = new_s;
+  }
+
+    if old_s < 0 {
+      old_s = (old_s % b) + b;
     }
-    match BigUint::try_from(bigi) {
-        Ok(i) => i,
-        Err(i) => panic!("Something happend, that really shouldn't have happened: {:?}", i),
-    }
-  };
-  println!("{:?}", uint)
+    old_s
 }
