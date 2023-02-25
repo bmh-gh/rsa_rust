@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use num::{bigint::{BigUint, RandBigInt}, BigInt, CheckedDiv};
+use num::{bigint::{BigUint, RandBigInt}, BigInt};
 use rand;
 
 
@@ -55,14 +55,13 @@ impl RSA {
     //     true
     // }
     
-    fn millerTest(d: &BigUint, n: &BigUint) -> bool {
+    fn miller_test(d: &BigUint, n: &BigUint) -> bool {
         let mut d = d.clone();
         // Pick a random number in [2..n-2]
         // Corner cases make sure that n > 4
         let mut rng = rand::thread_rng();
-        let a: BigUint = rng.gen_biguint_range(&3_u8.into(), &n.bits().into());
+        let a: BigUint = rng.gen_biguint_range(&3_u8.into(), &(BigUint::from(2_u8).pow(n.bits() as u32)));
 
-            
         // Compute a^d % n
         let mut x = a.modpow(&d, &n);
      
@@ -103,16 +102,15 @@ impl RSA {
      
         // Find r such that n = 2^d * r + 1
         // for some r >= 1
-        let mut d = &(n - BigUint::from(1_u8));
+        let mut d = n - BigUint::from(1_u8);
          
-        while &(d % &BigUint::from(2_u8)) == &BigUint::from(0_u8) {
-            // d.checked_div(2_u8.into()).unwrap()
-            // d = &(d / &BigUint::from(2_u8));
+        while &d % BigUint::from(2_u8) == BigUint::from(0_u8) {
+            d = d / BigUint::from(2_u8);
         }
      
         // Iterate given number of 'k' times
-        for _ in 0..11 {
-            if !Self::millerTest(&d, n) {
+        for _ in 0..3 {
+            if !Self::miller_test(&d, n) {
                 return false;
             }
         }
@@ -148,8 +146,8 @@ impl RSA {
         let mut rng = rand::thread_rng();
 
         loop {
-            let random: BigUint = rng.gen_biguint(bit_size);
-            if Self::is_prime(&random) {
+            let random: BigUint = dbg!(rng.gen_biguint(bit_size - 1) * BigUint::from(2_u8) + BigUint::from(1_u8));
+            if dbg!(Self::is_prime(&random)) {
                 return random;
             }
         }
@@ -165,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_prime() {
-        let prime =  BigUint::from(65537_u32);
+        let prime =  RSA::gen_biguint_prime(2000);
         assert!(RSA::is_prime(&prime))
     }
 
@@ -178,8 +176,13 @@ mod tests {
     }
 
     #[test]
+    fn test_time() {
+        let _rsa = RSA::new(1024);
+    }
+
+    #[test]
     fn test_rsa_crypt() {
-        let rsa = RSA::new(50);
+        let rsa = RSA::new(1024);
 
         let m = BigUint::from(9238_u16);
 
