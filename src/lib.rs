@@ -187,14 +187,14 @@ impl RSA {
     ///
     /// -mh- lösch das oder übersetze.
     /// Ich habe das mal etwas refaktorisiert: Es gibt ein
-    /// [RandomBigUintOdds] Objekt, das einen Iterator
+    /// [RandomPrimeCandidates] Objekt, das einen Iterator
     /// erzeugen kann, der unendlich viele ungrade Zufallszahlen
     /// erzeugt. Die Ausgabe wird enumerisiert, d.h. es wird einfach
     /// ein fortlaufender Index für jede Zufallszahl geschaffen, um
     /// später herauszufinden, wieviel Versuche benötigt werden, bis
     /// eine Primzahl gefunden wurde. Nur zu statistischen Zwecken.
     /// Anschließend wird die Primzahl-Prüfung parallelisiert.
-    /// Der Iterator wird in einen ParallelIterator mit Hilfe von
+    /// Der Iterator wird in einen [ParallelIterator] mit Hilfe von
     /// [IterBridge] umgewandelt. [find_first] bricht die Iteration
     /// ab, sobald eine Primzahl gefunden wurde. Mit [expect] wird
     /// dann aus dem Option die Primzahl (und der Iterationswert)
@@ -214,7 +214,6 @@ impl RSA {
             .into_iter()
             .enumerate()
             .par_bridge()
-            // .find_first(|(_iteration, n)| Self::is_prime(n))
             .find_any(|(_iteration, n)| Self::is_prime(n))
             .expect("iterator should not return None")
     }
@@ -238,16 +237,12 @@ impl Iterator for RandomPrimeCandidates {
     /// 2^(self.bits - 1) + 1 und (2^self.bits)-1
     fn next(&mut self) -> Option<Self::Item> {
         let mut rng = rand::thread_rng();
-        // let value = rng.gen_biguint(self.bitsize - 1) * BigUint::from(2_u8) + BigUint::from(1_u8);
         let mut value = rng.gen_biguint(self.bits);
-        let before = value.bits();
-        // value > 2^(bitsize / 2)
+
         value.set_bit(0, true);
         value.set_bit(self.bits - 1, true);
-        let after = value.bits();
-        assert!(before <= after);
+
         assert_eq!(value.bits(), self.bits);
-        // Setze das niedrigste Bit => value % 2 == 1 (ungerade)
         Some(value)
     }
 }
@@ -256,7 +251,6 @@ impl Iterator for RandomPrimeCandidates {
 mod tests {
 
     use super::*;
-    // use crate::RSA;
     use num::bigint::BigUint;
 
     #[test]
@@ -302,8 +296,9 @@ mod tests {
         // verhindern, dass der Schlüssel durch Faktorisierung
         // gebrochen wird. -chatgpt-
         for bits in vec![
-            1024, 2048, 3072,
-            // 4096,
+            1024, 2048,
+            3072, // > 6000 Bits
+                 // 4096, // Dauert mit zu lange: > 6000 Bits
         ] {
             let rsa = RSA::new(bits);
             println!("RSA mit {} bit Primzahlen", bits);
