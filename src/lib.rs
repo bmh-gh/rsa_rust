@@ -30,7 +30,7 @@ struct RSA {
 impl RSA {
 
     fn new(key_size: u64) -> Self {
-        let ((_, p), (_, q)) = (prime::gen_prime(key_size / 2), prime::gen_prime(key_size / 2));
+        let ( p, q) = (prime::gen_prime(key_size / 2), prime::gen_prime(key_size / 2));
 
         let n = &p * &q;
         let phi_n = (&p - (1_u8)) * (&q - (1_u8));

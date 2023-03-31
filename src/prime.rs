@@ -9,12 +9,11 @@ lazy_static! {
     static ref PRIMES: Vec<BigUint> = first_primes(2000);
 }
 
-pub fn gen_prime(bit_size: u64) -> (usize, BigUint) {
+pub fn gen_prime(bit_size: u64) -> BigUint {
     RandomPrimeCandidate::new(bit_size) 
         .into_iter()
-        .enumerate()
         .par_bridge()
-        .find_any(|(_i, n)| is_prime(n))
+        .find_any(|n| is_prime(n))
         .expect("Should not be none")
 }
 
