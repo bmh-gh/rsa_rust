@@ -19,12 +19,12 @@ The basic steps for RSA are:
   2. Calculate the modulus $n = p \cdot q$
 
   3. Calculate Euler's totient function\
-   $\varphi(n) = \prod_{i = 1}^n (p^{k_i} \cdot p^{k_{i-1}}) = (p - 1) * (q - 1)$
+   $\varphi(n) = \prod_{i = 1}^n (p^{k_i} \cdot p^{k_{i-1}}) = (p - 1) \cdot (q - 1)$
 
   4. Choose an integer in range from 1..$\varphi(n)$ that is relatively prime to $\varphi(n)$:\
   $e \in \Z _ {\varphi(n)} \backslash \{ 0 \}: gcd(e, \varphi(n)) = 1$.\
   \
-  Because e is part of the public key it is not necessary to keep it secret. Therefore you can safe computing power if you just set it to a fixed value. Commonly used is $e = 65537 = 2^{16} + 1$. So it is necessary that the given bitsize for the key is at least $k$ ($|p| = \frac{k}{2}$ $\land$ $|1| = \frac{k}{2}$ $\implies$ $|(p - 1) \cdot (q - 1)| = k$).
+  Because $e$ is part of the public key it is not necessary to keep it secret. Therefore you can safe computing power if you just set it to a fixed value. Commonly used is $e = 65537 = 2^{16} + 1$. So it is necessary that the given bitsize for the key is at least $k$ ($|p| = \frac{k}{2}$ $\land$ $|q| = \frac{k}{2}$ $\implies$ $|(p - 1) \cdot (q - 1)| = k$).
 
   5. Calculate the modular inverse $d$ of $e$ modulo $\varphi(n)$ such that $d \cdot e ≡ 1$ $mod$ $\varphi(n) \iff e \equiv d^{-1}$ $mod$ $\varphi(n)$\
   To compute the modular inverse I use the extended eucledean algortihm. The output of the eucledean algorithm is a tuple of 4 values (r, q, s, t) where t is the modular inverse. There is a possibility that t is negative. If so you need to use the laws of modular arithmetic and make it positive.
